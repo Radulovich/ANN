@@ -1,11 +1,16 @@
 package core;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.Scanner;
+
+import javax.swing.JOptionPane;
 
 public class NeuralNet 
 {
-	private int numLayers;
+	private int numLayers;	// number of hidden layers + 1 output layer
 	private int neuronType;
 	private ArrayList<InputNode> input;
 	private ArrayList<ArrayList<Node>> net;
@@ -39,10 +44,15 @@ public class NeuralNet
 	 * Creates a new neural net made of a given neuron type with a given number of hidden layers and a given number of neurons per layer.
 	 * Note that the number of layers does NOT include the last output layer
 	 * @param numHiddenLayers - number of hidden layers to create (ie. does not include input or output layers)
-	 * @param numNeurons - number of neurons per layer...not currently used
+	 * @param numNeurons - number of neurons per layer.
 	 * @param neuronType - type of neuron to use in the neural net model
 	 */
 	public NeuralNet(int numHiddenLayers, int numNeurons, int neuronType)
+	{
+		init(numHiddenLayers, numNeurons, neuronType);
+	}
+	
+	public void init(int numHiddenLayers, int numNeurons, int neuronType)
 	{
 		this.numLayers = numHiddenLayers;
 		this.neuronType = neuronType;
@@ -83,6 +93,138 @@ public class NeuralNet
 			minOutput[i] = 0;
 			maxOutput[i] = 1;
 		}
+	}
+	
+	/**
+	 * clears the current network
+	 */
+	public void clear()
+	{
+		input.clear();
+		for(int i=0; i< numLayers; i++)
+		{
+			net.get(i).clear();
+		}
+		net.clear();
+	}
+	
+	public boolean loadNetwork(File f)
+	{
+		boolean result = true;
+		float inputsWithBias[] = null;
+		float inputs[] = null;
+		Scanner sc;
+		
+		try {
+			sc = new Scanner(f);
+			if (sc.hasNextLine()) {	// each line from the file is a separate layer (1st line = input, followed by hidden layers, 
+				String tokens[];
+				// followed by output layer
+				String line = sc.nextLine();
+				targetError = Float.parseFloat(line);
+				line = sc.nextLine();
+				tokens = line.split(",");
+				minOutput = new float[tokens.length];
+				for(int i=0; i<tokens.length; i++)
+				{
+					minOutput[i] = Float.parseFloat(tokens[i]);		
+				}
+				line = sc.nextLine();
+				tokens = line.split(",");
+				maxOutput = new float[tokens.length];
+				for(int i=0; i<tokens.length; i++)
+				{
+					maxOutput[i] = Float.parseFloat(tokens[i]);		
+				}
+				line = sc.nextLine();
+				learningRate = Float.parseFloat(line);
+				line = sc.nextLine();
+				neuronType = Integer.parseInt(line);
+				line = sc.nextLine();
+				numLayers = Integer.parseInt(line);
+				
+				line = sc.nextLine();
+				tokens = line.split(",");
+				// first, get the inputs
+				inputsWithBias = new float[tokens.length];
+				for(int i=0; i<inputsWithBias.length; i++)
+				{
+					inputsWithBias[i] = Float.parseFloat(tokens[i]);
+				}
+				// create second set of inputs without bias
+				inputs = new float[inputsWithBias.length - 1];
+				for(int i=0; i<inputs.length; i++)
+				{
+					inputs[i] = inputsWithBias[i+1];
+				}
+			}
+			//addInputLayer(inputs);	// add the inputs to the neural net model
+			//normalizeInputs();
+			// Now get the hidden layers
+			ArrayList<float[]> layers = new ArrayList<float[]>();
+			while (sc.hasNextLine()) {
+				String line = sc.nextLine();
+				String tokens[] = line.split(",");
+				layers.add(new float[tokens.length]);
+				for(int i=0; i<layers.get(layers.size()-1).length; i++)
+				{
+					layers.get(layers.size()-1)[i] = Float.parseFloat(tokens[i]);
+				}
+			}
+			sc.close();
+			// Now complete creating the new network
+			clear();	// clear the current network
+			init(layers.size()-2, 3, SIGMOID_NEURON);  // last 2 arguments could be read from file in future versions
+			setLearningRate(0.3f);
+			
+			addInputLayerWithBias(inputsWithBias);	// add the inputs to the neural net model
+			//normalizeInputs();
+			addOutputLayer(1);		// add one output in the output layer
+
+			createConnections(0, 1);	// default connections with random weights between [0, 1)
+			connectInputs(0, 1);	   	// connect inputs to 1st layer using random weights in the range [0, 1)
+			// set thresholds
+			for(int i=1; i<=this.numLayers; i++)
+			{
+				for(int j=0; j<getLayer(i).size()-1; j++)
+				{
+					((SigmoidNeuron)(getLayer(i).get(j+1))).setThreshold(0f);	
+				}
+			}
+				
+			
+			/**
+			 * Sets the weight of a connection of a node within a certain layer.  Useful to set weights of a pre-trained network.
+			 * @param w	- the weight to set
+			 * @param layerNum - the layer where the node resides (first layer = 1)
+			 * @param nodeNum - the node whose weight we want to set on one of its connections
+			 * @param connectionNum - the particular connection of the node whose weight is to be set (index starts at 1 because bias is at zero)
+			 */
+			
+			// set weights
+			int n = 0;
+			for(int i=0; i<numLayers; i++)
+			{
+				for(int j=0; j<net.get(i).size(); j++)	// for each node
+				{
+					n = 0;
+					for(int k=0; k<net.get(i).get(j).getNumWeights(); k++)
+						setWeight(layers.get(i)[n++], i+1, j, k);
+				}
+			}
+			
+			for(int i=0; i<targetOutputs.length; i++)
+			{
+				targetOutputs[i] = layers.get(layers.size()-1)[i];
+			}
+			setTargetOutputs(targetOutputs);
+			
+		}catch (FileNotFoundException e1) {
+				JOptionPane.showMessageDialog(null, "Error loading ANN file.");
+				result = false;
+		}
+		
+		return result;
 	}
 	
 	/**
@@ -168,6 +310,14 @@ public class NeuralNet
 	public void addInputLayer(float[] in )
 	{
 		input.add(new InputNode(-1));	// extra node for bias - should be -1
+		for(int i=0; i<in.length; i++)	
+		{
+			input.add(new InputNode(in[i]));
+		}
+	}
+	
+	public void addInputLayerWithBias(float[] in )
+	{
 		for(int i=0; i<in.length; i++)	
 		{
 			input.add(new InputNode(in[i]));
@@ -323,9 +473,9 @@ public class NeuralNet
 	/**
 	 * Sets the weight of a connection of a node within a certain layer.  Useful to set weights of a pre-trained network.
 	 * @param w	- the weight to set
-	 * @param layerNum - the layer where the node resides
+	 * @param layerNum - the layer where the node resides (first layer = 1)
 	 * @param nodeNum - the node whose weight we want to set on one of its connections
-	 * @param connectionNum - the particular connection of the node whose weight is to be set
+	 * @param connectionNum - the particular connection of the node whose weight is to be set (index starts at 1 because bias is at zero)
 	 */
 	public void setWeight(float w, int layerNum, int nodeNum, int connectionNum)
 	{
@@ -590,10 +740,16 @@ public class NeuralNet
 	public void setInitialWeights(float randStart, float randEnd)
 	{
 		Random rand = new Random();
+		float weight;
 		for(int i=0; i<numLayers; i++){
 			for(int j=0; j<net.get(i).size(); j++){
-				float weight = rand.nextFloat() * (randEnd-randStart) + randStart;
-				net.get(i).get(j).setAllWeights(weight);
+				for(int k=0; k<net.get(i).get(j).getNumWeights(); k++)
+				{
+					weight = rand.nextFloat() * (randEnd-randStart) + randStart;
+					net.get(i).get(j).setWeight(weight, k);
+				}
+				
+				//net.get(i).get(j).setAllWeights(weight);
 			}
 		}
 	}
@@ -687,11 +843,11 @@ public class NeuralNet
 				for(int k=0; k<net.get(i).get(j).getNumInputs(); k++) {
 					str += net.get(i).get(j).getWeight(k) + ", ";
 				}
-				str += "\t";
+				//str += "\t";
 			}
-			str = str.substring(0, str.length()-3);
-			str += "\n";
+			str = str.substring(0, str.length()-2) + "\n";	// remove trailing comma and add a newline
 		}
+		str = str.substring(0, str.length()-1);
 		return str;
 	}
 	
@@ -722,7 +878,7 @@ public class NeuralNet
 	
 	/**
 	 * 
-	 * @param targetOutputs The target output(s) of the NN
+	 * @param normalizedTargetOutputs The target output(s) of the NN
 	 * @param iterations Number of times to run the upateNetwork algorithm
 	 * @return error
 	 */
@@ -739,17 +895,18 @@ public class NeuralNet
 		
 		do
 		{
+			totalError = 0.0f;
 			updateNetwork();
 			
 			run++;
 			
 			for(int i=0; i< targetOutputs.length; i++) 
 			{
-				float error = targetOutputs[i] - getOutput(i+1);
+				float error = targetOutputs[i] - getRawOutput(i+1);
 				totalError += Math.abs(error);
 			}
 			iterationNumber++;
-			totalError = 0.0f;
+			//totalError = 0.0f;
 		}while(run < iterations);
 		return totalError;
 	}
@@ -777,9 +934,60 @@ public class NeuralNet
 				totalError += Math.abs(error);
 			}
 			System.out.println("error = " + totalError);
+			
 			iterationNumber++;
 			
 		}while(totalError > targetError);
 
+	}
+
+	public String getTargets() 
+	{
+		String result = ""; 
+		for(float f : targetOutputs)
+		{
+			result += f + ", ";
+		}
+		return result.substring(0, result.length()-2);
+	}
+
+	public float getTargetError() {
+		return targetError;
+	}
+
+	public void setTargetError(float targetError) {
+		this.targetError = targetError;
+	}
+	
+	public String getMinOutputs()
+	{
+		String result = ""; 
+		for(float m : minOutput)
+		{
+			result += m + ", ";
+		}
+		return result.substring(0, result.length()-2);
+	}
+	
+	public String getMaxOutputs()
+	{
+		String result = ""; 
+		for(float m : maxOutput)
+		{
+			result += m + ", ";
+		}
+		return result.substring(0, result.length()-2);
+	}
+
+	public int getNeuronType() {
+		return neuronType;
+	}
+
+	public void setNeuronType(int neuronType) {
+		this.neuronType = neuronType;
+	}
+
+	public void setNumLayers(int numLayers) {
+		this.numLayers = numLayers;
 	}
 }

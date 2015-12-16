@@ -22,6 +22,7 @@ public abstract class Node
 	public ArrayList<Node> getOutputs() { return null; }
 	public float getWeight(int i) { return 0; }
 	public void setWeight(float w, int i) {}
+	public int getNumWeights() { return 0; }
 	public ArrayList<Node> getInputs() { return null; }
 	
 	public float getError() 

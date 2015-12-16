@@ -68,6 +68,15 @@ public class Neuron extends Node
 	}
 	
 	/**
+	 * Returns the number of weights associated with the inputs of this node
+	 * @return Number of incoming weights
+	 */
+	public int getNumWeights()
+	{
+		return weights.size();
+	}
+	
+	/**
 	 * get the weight of the ith input for this neuron
 	 * @param i
 	 */

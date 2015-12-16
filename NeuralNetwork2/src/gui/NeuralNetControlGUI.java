@@ -13,6 +13,7 @@ import javax.swing.JPanel;
 public class NeuralNetControlGUI extends JPanel 
 {
 	public JButton stepButton;
+	public JButton trainButton;
 	public JButton saveButton;
 	public JButton loadButton;
 	
@@ -20,6 +21,9 @@ public class NeuralNetControlGUI extends JPanel
 	{
 		stepButton = new JButton("Next Iteration");
 		add(stepButton,BorderLayout.PAGE_END);
+		
+		trainButton = new JButton("Train Network");
+		add(trainButton,BorderLayout.PAGE_END);
 		
 		saveButton = new JButton("Save Network");
 		add(saveButton, BorderLayout.PAGE_END);
