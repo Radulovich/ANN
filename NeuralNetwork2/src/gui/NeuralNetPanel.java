@@ -17,7 +17,6 @@ import java.util.ArrayList;
 
 public class NeuralNetPanel extends JPanel implements KeyListener,  MouseListener
 {
-	int height, width;
 	public final static int H_NODE_SPACING = 140; 
 	public final static int V_NODE_SPACING = 120; 
 	private long elapsedTime, startTime;
@@ -34,8 +33,6 @@ public class NeuralNetPanel extends JPanel implements KeyListener,  MouseListene
 
 	public void init () 
 	{
-		height = 480;
-		width = 600;
 
 		// Initialize any other objects here (such as GUI buttons, or your own class objects)
 

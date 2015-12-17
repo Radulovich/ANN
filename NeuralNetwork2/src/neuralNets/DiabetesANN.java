@@ -25,6 +25,8 @@ public class DiabetesANN
 	NeuralNet net;
 	NeuralNetPanel np;
 	NeuralNetFrame frame;
+	int FRAME_WIDTH = 1200;
+	int FRAME_HEIGHT = 600;
 	
 	float[] inputs = {7.8f, 80f, 10+39/60f, 12+30/60, 1};
 	// set target Outputs
@@ -97,7 +99,7 @@ public class DiabetesANN
 		frame = new NeuralNetFrame(np);
 		frame.setNet(net);
 		frame.setTitle("Neural Net");
-		frame.setSize(600, 480);
+		frame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		frame.setVisible(true);
@@ -141,14 +143,15 @@ public class DiabetesANN
 		frame = new NeuralNetFrame(np);
 		frame.setNet(net);
 		frame.setTitle("Neural Net");
-		frame.setSize(600, 480);
+		frame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
+		//frame.pack();
 		frame.setVisible(true);
 		
 		//net.train();
 		System.out.println(net.getInputs());
 		System.out.println(net.getWeights());
 		np.repaint();
+		//frame.repaint();
 	}
 }

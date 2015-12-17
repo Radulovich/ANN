@@ -15,6 +15,8 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -28,21 +30,41 @@ public class NeuralNetFrame extends JFrame implements ActionListener
 	private NeuralNetControlGUI GUI_Control;
 	private NeuralNet net;
 	private NeuralNetPanel np;
+	private JPanel mainPanel;
+	private JPanel inputPanel;
+	
+	public NeuralNetFrame()
+	{
+		this(null);
+		
+	}
 	
 	public NeuralNetFrame(NeuralNetPanel np)
 	{
 		this.np = np;
+		this.setSize(1000, 500);
+		setLayout(new BorderLayout(10, 10));
+		mainPanel = new JPanel();
+		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.X_AXIS));
+		add(mainPanel, BorderLayout.CENTER);
+		
+		inputPanel = new JPanel();
+		inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
+		inputPanel.add(new JButton("INPUT 1"));
+		inputPanel.add(new JButton("INPUT 2"));
+		mainPanel.add(inputPanel);
+		
 		if(np != null)
-			add(np);
+			mainPanel.add(np);
 		else
-			add(new JPanel());
+			mainPanel.add(new JPanel());
 		GUI_Control = new NeuralNetControlGUI();
-		add(GUI_Control, BorderLayout.PAGE_END);
+		
+		add(GUI_Control,  BorderLayout.PAGE_END);
 		GUI_Control.stepButton.addActionListener(this);
 		GUI_Control.trainButton.addActionListener(this);
 		GUI_Control.saveButton.addActionListener(this);
 		GUI_Control.loadButton.addActionListener(this);
-		
 	}
 
 	@Override
@@ -132,31 +154,9 @@ public class NeuralNetFrame extends JFrame implements ActionListener
 			//This is where a real application would open the file.
 			System.out.println("Loading: " + file.getName() + ".");	//TODO open a new file and read in weights, etc
 			Scanner sc;
-//			try {
-				if(!net.loadNetwork(file))
-					JOptionPane.showMessageDialog(null, "Error loading ANN file.");
+			if(!net.loadNetwork(file))
+				JOptionPane.showMessageDialog(null, "Error loading ANN file.");
 
-
-//				// thresholds
-//				((SigmoidNeuron)(net.getLayer(1).get(1))).setThreshold(0f);	
-//				((SigmoidNeuron)(net.getLayer(1).get(2))).setThreshold(0f);
-//				((SigmoidNeuron)(net.getLayer(2).get(1))).setThreshold(0f);	
-//
-//				// set weights
-//				net.setInitialWeights(0.0f, 1.0f);	// random weights between 0 and 1
-//				
-//				net.setTargetOutputs(targets);
-//				// set output ranges
-//				net.setOutputRange(1, 0, 35);
-//				// normalize targets
-//				targetOutputs = new float[rawTargetOutputs.length];
-//				for(int i=0; i<targetOutputs.length; i++)
-//					targetOutputs[i] = rawTargetOutputs[i]/(net.getMaxOutputRange(0)-net.getMinOutputRange(0));
-//			} catch (FileNotFoundException e1) {
-//				// TODO Auto-generated catch block
-//				JOptionPane.showMessageDialog(null, "Error loading ANN file.");
-//				e1.printStackTrace();
-//			}
 		}
 	}
 }
