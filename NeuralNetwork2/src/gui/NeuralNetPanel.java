@@ -15,12 +15,18 @@ import java.util.ArrayList;
 
 // Frame template:  use this code as a starting point for your own program
 
-public class NeuralNetPanel extends JPanel implements KeyListener,  MouseListener
+public class NeuralNetPanel extends JPanel implements KeyListener,  MouseListener, MouseMotionListener
 {
 	public final static int H_NODE_SPACING = 140; 
 	public final static int V_NODE_SPACING = 120; 
 	private long elapsedTime, startTime;
 	private float error;
+	
+	Point mouseLoc;
+	boolean mousePressed;
+	Node selectedNode;
+	Point oldMouseLoc;
+			
 	
 	// Add your own state variables here
 	private NeuralNet net;
@@ -28,6 +34,12 @@ public class NeuralNetPanel extends JPanel implements KeyListener,  MouseListene
 	public NeuralNetPanel (NeuralNet n)
 	{
 		net = n;
+		mousePressed = false;
+		selectedNode = null;
+		// listen to keyboard events -- eg. if a key is pressed, keyPressed() method is called 
+		addKeyListener(this);
+		addMouseListener(this);
+		addMouseMotionListener(this);
 		init ();
 	}
 
@@ -36,46 +48,76 @@ public class NeuralNetPanel extends JPanel implements KeyListener,  MouseListene
 
 		// Initialize any other objects here (such as GUI buttons, or your own class objects)
 
-		
-		// listen to keyboard events -- eg. if a key is pressed, keyPressed() method is called 
-		addKeyListener(this);
 		startTime = System.nanoTime();
+		
+		// set default node positions
+		setInputLayer(70, 70);
+		for(int i=1; i<=net.getNumLayers(); i++)
+        {
+        	setLayer(i, 70, 70+i*V_NODE_SPACING);
+        }
 	}
 	
-	public void drawInputLayer(Graphics g, int xPos, int yPos)
+	/**
+	 * Sets Input layer starting position on screen to xPos, yPos
+	 * @param g
+	 * @param xPos
+	 * @param yPos
+	 */
+	public void setInputLayer(int xPos, int yPos)
 	{
 		//int x = width/2-(H_NODE_SPACING+net.getInputLayer().get(0).getSize())*net.getInputLayer().size()/2;	// starting x-value for input nodes
 		int x = net.getInputLayer().get(0).getSize()/2;
-		int count = 0;
 		for(InputNode n: net.getInputLayer())
 		{
 			n.setPos(x, yPos);
+			x += n.getSize()+ H_NODE_SPACING;
+		}
+	}
+	
+	public void drawInputLayer(Graphics g)
+	{
+		//int x = width/2-(H_NODE_SPACING+net.getInputLayer().get(0).getSize())*net.getInputLayer().size()/2;	// starting x-value for input nodes
+		int count = 0;
+		for(InputNode n: net.getInputLayer())
+		{
 			if(count==0)
 				n.draw(g, Color.CYAN);	// for bias
 			else
 				n.draw(g, Color.GREEN);
-			
-			
-			x += n.getSize()+ H_NODE_SPACING;
+
 			count++;
 		}
 	}
 	
-	public void drawLayer(Graphics g, int layer, int xPos, int yPos)
+	/**
+	 * Set layer starting position at (xPos, yPos)
+	 * @param layer
+	 * @param xPos
+	 * @param yPos
+	 */
+	public void setLayer(int layer, int xPos, int yPos)
 	{
-		//int x = width/2-(H_NODE_SPACING+net.getLayer(layer).get(0).getSize())*net.getLayer(layer).size()/2;	
-		int x = net.getInputLayer().get(0).getSize()/2;
-		int count = 0;
+		int x = xPos;
+
 		for(Node n: net.getLayer(layer))
 		{
 			n.setPos(x, yPos);
+			x += n.getSize()+ H_NODE_SPACING;
+		}
 
+	}
+	
+	public void drawLayer(Graphics g, int layer)
+	{
+		int count = 0;
+		for(Node n: net.getLayer(layer))
+		{
 			if(count==0 && layer != net.getNumLayers())
 				n.draw(g, Color.CYAN);	// for bias
 			else if(count != 0)
 				n.draw(g, Color.WHITE);
-			
-			x += n.getSize()+ H_NODE_SPACING;
+
 			count++;
 		}
 	}
@@ -145,18 +187,13 @@ public class NeuralNetPanel extends JPanel implements KeyListener,  MouseListene
 	protected void paintComponent(Graphics g)  
     {  
         super.paintComponent(g);  
-        //drawInputLayer(g, 70, 70);
-        for(int i=1; i<=net.getNumLayers(); i++)
-        {
-        	drawLayer(g, i, 70, 70+i*V_NODE_SPACING);
-        }
+
         drawConnections(g);
-        drawInputLayer(g, 70, 70);
+        drawInputLayer(g);
         for(int i=1; i<=net.getNumLayers(); i++)
         {
-        	drawLayer(g, i, 70, 70+i*V_NODE_SPACING);
+        	drawLayer(g, i);
         }
-        
         
         // provide some progress feedback
         int h = this.getHeight();
@@ -200,6 +237,9 @@ public class NeuralNetPanel extends JPanel implements KeyListener,  MouseListene
 	}
 
 
+	/**
+	 * called when the mouse is pressed and released within a short time (ie. clicked)
+	 */
 	public void mouseClicked(MouseEvent e) {
 
 		
@@ -218,14 +258,71 @@ public class NeuralNetPanel extends JPanel implements KeyListener,  MouseListene
 	}
 
 
-	public void mousePressed(MouseEvent e) {
-
+	/**
+	 * called when the mouse is pressed only (does not have to be released)
+	 */
+	public void mousePressed(MouseEvent e) 
+	{
+		mouseLoc = e.getPoint();
+		mousePressed = true;
+		
+		// determine if a node was selected
+		// search input nodes first
+		for(InputNode n: net.getInputLayer())
+		{
+			if(n.getPoint().distance(mouseLoc) <= n.getSize()/2)
+				selectedNode = n;
+		}
+		
+		for(int i=1; i<=net.getNumLayers(); i++)
+        {
+			for(Node n: net.getLayer(i))
+			{
+				if(n.getPoint().distance(mouseLoc) <= n.getSize()/2)
+					selectedNode = n;
+			}
+			
+        }
+//		System.out.println("Mouse Pressed... + selected node = " + selectedNode);
 		
 	}
 
 
-	public void mouseReleased(MouseEvent e) {
+	public void mouseReleased(MouseEvent e) 
+	{
+		mousePressed = false;
+		selectedNode = null;
+	}
 
+	@Override
+	public void mouseDragged(MouseEvent e) 
+	{
+		if(mousePressed && selectedNode != null)
+		{
+			Point p = new Point();
+			p.setLocation(e.getPoint().getX() - selectedNode.getPoint().getX(),
+					      e.getPoint().getY() - selectedNode.getPoint().getY());
+			Point temp = selectedNode.getPoint();
+			temp.translate((int)p.getX(), (int)p.getY());
+			selectedNode.setPoint(temp);
+			repaint();
+		}
+	}
+
+	@Override
+	public void mouseMoved(MouseEvent e) 
+	{
+		if(mousePressed && selectedNode != null)
+		{
+			Point p = new Point();
+			p.setLocation(e.getPoint().getX() - selectedNode.getPoint().getX(),
+					      e.getPoint().getY() - selectedNode.getPoint().getY());
+			selectedNode.getPoint().translate((int)p.getX(), (int)p.getY());
+			
+			System.out.println("Mouse Moved...");
+		}
+			
+		
 		
 	}
 }
