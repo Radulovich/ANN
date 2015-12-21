@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -50,8 +51,10 @@ public class NeuralNetFrame extends JFrame implements ActionListener
 		
 		inputPanel = new JPanel();
 		inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
-		inputPanel.add(new JButton("INPUT 1"));
-		inputPanel.add(new JButton("INPUT 2"));
+		ImageIcon checkeredGrid = new ImageIcon("res/images/checkeredGrid2.png");
+		ImageIcon arrayGrid = new ImageIcon("res/images/checkeredArray.png");
+		inputPanel.add(new JButton(new ImageIcon(arrayGrid.getImage().getScaledInstance(30, 30, 0))));
+		inputPanel.add(new JButton(new ImageIcon(checkeredGrid.getImage().getScaledInstance(30, 30, 0))));
 		mainPanel.add(inputPanel);
 		
 		if(np != null)
@@ -156,7 +159,10 @@ public class NeuralNetFrame extends JFrame implements ActionListener
 			Scanner sc;
 			if(!net.loadNetwork(file))
 				JOptionPane.showMessageDialog(null, "Error loading ANN file.");
-
+			else
+			{
+				np.init();
+			}
 		}
 	}
 }

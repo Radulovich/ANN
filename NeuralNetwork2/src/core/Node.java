@@ -2,6 +2,7 @@ package core;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.util.ArrayList;
 
 public abstract class Node 
@@ -44,6 +45,17 @@ public abstract class Node
 	public int[] getPos()
 	{
 		return pos;
+	}
+	
+	public void setPoint(Point p)
+	{
+		pos[0] = (int)p.getX();
+		pos[1] = (int)p.getY();
+	}
+	
+	public Point getPoint()
+	{
+		return new Point(pos[0], pos[1]);
 	}
 	
 	public int getSize()
