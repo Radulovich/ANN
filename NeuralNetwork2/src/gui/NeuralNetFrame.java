@@ -64,10 +64,14 @@ public class NeuralNetFrame extends JFrame implements ActionListener
 		GUI_Control = new NeuralNetControlGUI();
 		
 		add(GUI_Control,  BorderLayout.PAGE_END);
+		
+		// add GUI control listeners
 		GUI_Control.stepButton.addActionListener(this);
 		GUI_Control.trainButton.addActionListener(this);
 		GUI_Control.saveButton.addActionListener(this);
 		GUI_Control.loadButton.addActionListener(this);
+		GUI_Control.calcOutputButton.addActionListener(this);
+		GUI_Control.loadDataButton.addActionListener(this);
 	}
 
 	@Override
@@ -91,7 +95,18 @@ public class NeuralNetFrame extends JFrame implements ActionListener
 			System.out.println("Train Network Button pressed...");
 			net.train();
 			np.repaint();
-		} 
+		}else if(e.getSource() == GUI_Control.calcOutputButton)
+		{
+			System.out.println("Calc Output Button pressed...");
+			net.setInput(1);
+			net.forwardPropagate();
+			System.out.println("Output = " + net.getOutputValues());
+		}else if(e.getSource() == GUI_Control.loadDataButton)
+		{
+			System.out.println("Load Data Button pressed...");
+			loadInputData();
+			np.repaint();
+		}
 
 	}
 
@@ -147,22 +162,40 @@ public class NeuralNetFrame extends JFrame implements ActionListener
 	
 	public void loadNetwork()	
 	{
-		float inputs[] = null;
-		float hiddenLayers[];
-		float outputs[];
+//		float inputs[] = null;
+//		float hiddenLayers[];
+//		float outputs[];
 		final JFileChooser fc = new JFileChooser();
 		int returnVal = fc.showOpenDialog(null);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 			File file = fc.getSelectedFile();
 			//This is where a real application would open the file.
 			System.out.println("Loading: " + file.getName() + ".");	//TODO open a new file and read in weights, etc
-			Scanner sc;
 			if(!net.loadNetwork(file))
 				JOptionPane.showMessageDialog(null, "Error loading ANN file.");
 			else
 			{
 				np.init();
 			}
+		}
+	}
+	
+	public void loadInputData()	
+	{
+		float inputs[] = null;
+
+		final JFileChooser fc = new JFileChooser();
+		int returnVal = fc.showOpenDialog(null);
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			File file = fc.getSelectedFile();
+			//This is where a real application would open the file.
+			System.out.println("Loading: " + file.getName() + ".");	//TODO open a new file and read in weights, etc
+			if(!net.loadInputData(file))
+				JOptionPane.showMessageDialog(null, "Error loading ANN file.");
+//			else
+//			{
+//				np.init();
+//			}
 		}
 	}
 }

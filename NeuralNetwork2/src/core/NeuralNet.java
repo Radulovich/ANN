@@ -13,6 +13,7 @@ public class NeuralNet
 	private int numLayers;	// number of hidden layers + 1 output layer
 	private int neuronType;
 	private ArrayList<InputNode> input;
+	private ArrayList<float[]> trainingData;
 	private ArrayList<ArrayList<Node>> net;
 	private float[] outputErrors;
 	private float[] targetOutputs;
@@ -108,6 +109,40 @@ public class NeuralNet
 		net.clear();
 	}
 	
+	public boolean loadInputData(File f)
+	{
+		boolean result = true;
+		Scanner sc;
+		ArrayList<float[]> inputs = new ArrayList<float[]>();
+		
+		try {
+			sc = new Scanner(f);
+			String tokens[];
+			String line;
+			float[] inputLine;	// array to hold 1 line of input data
+			
+			while (sc.hasNextLine()) {	// each line from the file is a separate input set
+				line = sc.nextLine();
+				if(line.trim().startsWith("#"))
+					continue;
+				tokens = line.split(",");
+				inputLine = new float[tokens.length+1];	// leave one more for the bias
+				inputLine[0] = -1; // bias
+				for(int i=1; i<=tokens.length; i++)
+				{
+					inputLine[i] = Float.parseFloat(tokens[i-1]);		
+				}
+				inputs.add(inputLine);
+			}
+			trainingData = inputs;
+		}	catch (FileNotFoundException e1) {
+				JOptionPane.showMessageDialog(null, "Error loading Input Data file.");
+				result = false;
+		}
+			
+		return result;
+	}
+	
 	public boolean loadNetwork(File f)
 	{
 		boolean result = true;
@@ -175,7 +210,7 @@ public class NeuralNet
 			// Now complete creating the new network
 			clear();	// clear the current network
 			init(layers.size()-2, 3, SIGMOID_NEURON);  // last 2 arguments could be read from file in future versions
-			setLearningRate(0.3f);
+			setLearningRate(learningRate);
 			
 			addInputLayerWithBias(inputsWithBias);	// add the inputs to the neural net model
 			//normalizeInputs();
@@ -266,7 +301,7 @@ public class NeuralNet
 	}
 	
 	// normalizes the input data using the formula x_normnalized = (x - mean) / standard deviation
-	// note: the methods destroys (overwrites) the original inputs
+	// note: the method destroys (overwrites) the original inputs
 	public void normalizeInputs()
 	{
 		float mean;
@@ -324,8 +359,27 @@ public class NeuralNet
 		}
 	}
 	
+	/**
+	 * Sets the input to be the ith training data
+	 * @param i
+	 */
+	public void setInput(int i)
+	{
+		if(i <= trainingData.size())
+			setInput(trainingData.get(i-1));
+	}
+	
+	/**
+	 * Sets inputs from array in.  Note that the size of the array in must be equal to the size of this.input
+	 * @param in
+	 */
 	public void setInput(float[] in)
 	{
+		if(in.length != input.size())
+		{
+			System.out.println("Failed to set input: Training input data size does not match ANN input size.");
+			return;
+		}
 		for(int i=0; i<in.length; i++)	
 		{
 			InputNode inode = input.get(i);

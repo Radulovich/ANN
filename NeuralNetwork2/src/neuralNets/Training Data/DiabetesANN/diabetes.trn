@@ -1,0 +1,2 @@
+# diabetes input data: blood glucose, carbs eaten, time of BG reading (in hours), next time to test BG, physical activity (scale of 0 to 10, 0 being not active at all)
+7.8, 80.0, 10.65, 12.0, 1.0

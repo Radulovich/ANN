@@ -119,7 +119,7 @@ public class DiabetesANN
 		net.setLearningRate(0.3f);
 		
 		net.addInputLayer(inputs);	// add the inputs to the neural net model
-		net.normalizeInputs();
+		//net.normalizeInputs();
 		net.addOutputLayer(1);		// add one output in the output layer
 
 		net.createConnections(0, 1);	// default connections with random weights between [0, 1)
