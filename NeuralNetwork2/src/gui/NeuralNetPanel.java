@@ -177,7 +177,9 @@ public class NeuralNetPanel extends JPanel implements KeyListener,  MouseListene
 			if(count != 0)
 			{
 				g.drawLine(n.getPos()[0], n.getPos()[1], n.getPos()[0], n.getPos()[1] + V_NODE_SPACING);
-				g.drawString(""+n.getOutput(), n.getPos()[0]-10, n.getPos()[1] + V_NODE_SPACING+10);
+				//g.drawString(""+n.getOutput(), n.getPos()[0]-10, n.getPos()[1] + V_NODE_SPACING+10);
+				// display un-normalized output
+				g.drawString(""+net.getOutput(1), n.getPos()[0]-10, n.getPos()[1] + V_NODE_SPACING+10);
 			}
 			count++;
 		}
@@ -324,5 +326,9 @@ public class NeuralNetPanel extends JPanel implements KeyListener,  MouseListene
 			
 		
 		
+	}
+
+	public NeuralNet getNet() {
+		return net;
 	}
 }

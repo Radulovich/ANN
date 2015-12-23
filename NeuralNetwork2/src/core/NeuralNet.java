@@ -13,10 +13,10 @@ public class NeuralNet
 	private int numLayers;	// number of hidden layers + 1 output layer
 	private int neuronType;
 	private ArrayList<InputNode> input;
-	private ArrayList<float[]> trainingData;
+	private ArrayList<float[]> trainingData;	// raw data sets
 	private ArrayList<ArrayList<Node>> net;
 	private float[] outputErrors;
-	private float[] targetOutputs;
+	private float[] targetOutputs;  // normalized
 	private float learningRate;
 	
 	private float targetError = 0.00001f;
@@ -135,6 +135,7 @@ public class NeuralNet
 				inputs.add(inputLine);
 			}
 			trainingData = inputs;
+			System.out.println("Loaded " + trainingData.size() + " sets of training data.");
 		}	catch (FileNotFoundException e1) {
 				JOptionPane.showMessageDialog(null, "Error loading Input Data file.");
 				result = false;
@@ -365,6 +366,8 @@ public class NeuralNet
 	 */
 	public void setInput(int i)
 	{
+		if(trainingData == null)
+			return;
 		if(i <= trainingData.size())
 			setInput(trainingData.get(i-1));
 	}
@@ -968,30 +971,60 @@ public class NeuralNet
 	/**
 	 *  Runs the updateNetwork algorithm until the target output(s) are within acceptable range
 	 */
-	public void train()	// should pass in array of target outputs
+	public void train()	// should pass in array of input training data?
 	{
 		float totalError = 0;
-//		float[] targetOutputs = new float[1];
-//		targetOutputs = new float[numOfOutputs()];
-//		targetOutputs[0] = 0.5f;
+		System.out.println("Number of Outputs = " + numOfOutputs());
+		setTargetOutputs(targetOutputs);
+
+			do
+			{
+				totalError = 0.0f;
+				updateNetwork();
+
+				for(int i=1; i<= targetOutputs.length; i++) 
+				{
+					float error = targetOutputs[i-1] - getRawOutput(i);
+					totalError += Math.abs(error);
+				}
+				System.out.println("error = " + totalError);
+
+				iterationNumber++;
+
+			}while(totalError > targetError);
+
+	}
+	
+	/**
+	 *  Runs the updateNetwork algorithm on entire set of training data until the target output(s) are within acceptable range
+	 */
+	public void train(ArrayList<float[]> data)	// should pass in array of input training data?
+	{
+		float totalError = 0;
 		System.out.println("Number of Outputs = " + numOfOutputs());
 		setTargetOutputs(targetOutputs);
 		
-		do
+		for(int j=0; j<data.size(); j++)	// go through all training data
 		{
-			totalError = 0.0f;
-			updateNetwork();
+			float[] inputData = data.get(j);
+			setInput(inputData);
 
-			for(int i=1; i<= targetOutputs.length; i++) 
+			do
 			{
-				float error = targetOutputs[i-1] - getRawOutput(i);
-				totalError += Math.abs(error);
-			}
-			System.out.println("error = " + totalError);
-			
-			iterationNumber++;
-			
-		}while(totalError > targetError);
+				totalError = 0.0f;
+				updateNetwork();
+
+				for(int i=1; i<= targetOutputs.length; i++) 
+				{
+					float error = targetOutputs[i-1] - getRawOutput(i);
+					totalError += Math.abs(error);
+				}
+				System.out.println("error = " + totalError);
+
+				iterationNumber++;
+
+			}while(totalError > targetError);
+		}
 
 	}
 
@@ -1043,5 +1076,9 @@ public class NeuralNet
 
 	public void setNumLayers(int numLayers) {
 		this.numLayers = numLayers;
+	}
+
+	public ArrayList<float[]> getTrainingData() {
+		return trainingData;
 	}
 }

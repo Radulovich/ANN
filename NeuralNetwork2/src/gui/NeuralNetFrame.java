@@ -1,6 +1,7 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
@@ -20,8 +21,10 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 import core.NeuralNet;
 import core.SigmoidNeuron;
@@ -33,6 +36,9 @@ public class NeuralNetFrame extends JFrame implements ActionListener
 	private NeuralNetPanel np;
 	private JPanel mainPanel;
 	private JPanel inputPanel;
+	private TrainingList trainingDataList;
+	
+	private JFrame inputDataFrame;
 	
 	public NeuralNetFrame()
 	{
@@ -43,6 +49,7 @@ public class NeuralNetFrame extends JFrame implements ActionListener
 	public NeuralNetFrame(NeuralNetPanel np)
 	{
 		this.np = np;
+		this.net = np.getNet();
 		this.setSize(1000, 500);
 		setLayout(new BorderLayout(10, 10));
 		mainPanel = new JPanel();
@@ -72,6 +79,11 @@ public class NeuralNetFrame extends JFrame implements ActionListener
 		GUI_Control.loadButton.addActionListener(this);
 		GUI_Control.calcOutputButton.addActionListener(this);
 		GUI_Control.loadDataButton.addActionListener(this);
+		
+		
+		trainingDataList = new TrainingList(net.getTrainingData()); //data has type Object[]
+		inputPanel.add(trainingDataList);
+
 	}
 
 	@Override
@@ -98,13 +110,22 @@ public class NeuralNetFrame extends JFrame implements ActionListener
 		}else if(e.getSource() == GUI_Control.calcOutputButton)
 		{
 			System.out.println("Calc Output Button pressed...");
-			net.setInput(1);
+			//net.setInput(1);
 			net.forwardPropagate();
+			np.repaint();
 			System.out.println("Output = " + net.getOutputValues());
 		}else if(e.getSource() == GUI_Control.loadDataButton)
 		{
 			System.out.println("Load Data Button pressed...");
 			loadInputData();
+			trainingDataList.setList(net.getTrainingData());
+			
+			inputDataFrame = new JFrame();
+			JScrollPane listScroller = new JScrollPane(trainingDataList);
+			inputDataFrame.add(listScroller);
+			inputDataFrame.setTitle("Input Data");
+			inputDataFrame.setVisible(true);
+			inputDataFrame.setSize(new Dimension(250, 100));
 			np.repaint();
 		}
 

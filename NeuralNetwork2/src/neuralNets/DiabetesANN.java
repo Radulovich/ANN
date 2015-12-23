@@ -28,7 +28,7 @@ public class DiabetesANN
 	int FRAME_WIDTH = 1200;
 	int FRAME_HEIGHT = 600;
 	
-	float[] inputs = {7.8f, 80f, 10+39/60f, 12+30/60, 1};
+	float[] inputs = {7.8f, 80f, 10+39/60f, 12+30/60, 1};	// default inputs
 	// set target Outputs
 	float[] rawTargetOutputs = new float[1];  // only one target: BG
 	float[] normalizedTargetOutputs = new float[1];  // only one target: BG
